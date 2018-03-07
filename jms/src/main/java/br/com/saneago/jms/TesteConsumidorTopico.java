@@ -4,14 +4,13 @@ import java.util.Scanner;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
-import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
-import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
+import javax.jms.Topic;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
@@ -19,7 +18,7 @@ import javax.naming.NamingException;
  * Hello world!
  *
  */
-public class TesteProdutor {
+public class TesteConsumidorTopico {
 	@SuppressWarnings("resource")
 	public static void main(String[] args) {
 		InitialContext context = null;
@@ -31,20 +30,32 @@ public class TesteProdutor {
 					.lookup("ConnectionFactory");
 
 			connection = factory.createConnection();
+			connection.setClientID("estoque");
 			connection.start();
 
 			Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 			
-			Destination fila = (Destination) context.lookup("financeiro");
+			Topic topico = (Topic) context.lookup("loja");
 			
-			MessageProducer produtor = session.createProducer(fila);
+			MessageConsumer consumidor = session.createDurableSubscriber(topico, "assinatura");
 			
-			for (int i = 0; i < 1000; i++) {
-				Message mensagem  = session.createTextMessage("mensagem " + i);
+			consumidor.setMessageListener(new MessageListener(){
+
+				public void onMessage(Message mensagem) {					
+					try {
+						TextMessage mensagemTexto = (TextMessage)mensagem;
+						
+						System.out.println("Mensagem recebida: " + mensagemTexto.getText());
+					} catch (JMSException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+				}
 				
-				produtor.send(mensagem);
-			}
+			});
 			
+			new Scanner(System.in).nextLine();
 		} catch (NamingException e) {
 			e.printStackTrace();
 		} catch (JMSException e) {

@@ -9,6 +9,7 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
+import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 import javax.naming.InitialContext;
@@ -18,7 +19,7 @@ import javax.naming.NamingException;
  * Hello world!
  *
  */
-public class TesteConsumidor {
+public class TesteProdutorFila {
 	@SuppressWarnings("resource")
 	public static void main(String[] args) {
 		InitialContext context = null;
@@ -36,25 +37,14 @@ public class TesteConsumidor {
 			
 			Destination fila = (Destination) context.lookup("financeiro");
 			
-			MessageConsumer consumidor = session.createConsumer(fila);
+			MessageProducer produtor = session.createProducer(fila);
 			
-			consumidor.setMessageListener(new MessageListener(){
-
-				public void onMessage(Message mensagem) {					
-					try {
-						TextMessage mensagemTexto = (TextMessage)mensagem;
-						
-						System.out.println("Mensagem recebida: " + mensagemTexto.getText());
-					} catch (JMSException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					
-				}
+			for (int i = 0; i < 1000; i++) {
+				Message mensagem  = session.createTextMessage("mensagem " + i);
 				
-			});
+				produtor.send(mensagem);
+			}
 			
-			new Scanner(System.in).nextLine();
 		} catch (NamingException e) {
 			e.printStackTrace();
 		} catch (JMSException e) {
