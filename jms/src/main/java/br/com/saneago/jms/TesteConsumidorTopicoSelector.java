@@ -8,11 +8,13 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
+import javax.jms.ObjectMessage;
 import javax.jms.Session;
-import javax.jms.TextMessage;
 import javax.jms.Topic;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+
+import br.com.caelum.modelo.Pedido;
 
 /**
  * Hello world!
@@ -21,6 +23,7 @@ import javax.naming.NamingException;
 public class TesteConsumidorTopicoSelector {
 	@SuppressWarnings("resource")
 	public static void main(String[] args) {
+		System.setProperty("org.apache.activemq.SERIALIZABLE_PACKAGES","*");
 		InitialContext context = null;
 		Connection connection = null;
 		try {
@@ -44,11 +47,12 @@ public class TesteConsumidorTopicoSelector {
 
 				public void onMessage(Message mensagem) {					
 					try {
-						TextMessage mensagemTexto = (TextMessage)mensagem;
+						//TextMessage mensagemTexto = (TextMessage)mensagem;//receber xml
 						
-						System.out.println("Mensagem recebida: " + mensagemTexto.getText());
-					} catch (JMSException e) {
-						// TODO Auto-generated catch block
+						ObjectMessage objectMessage = (ObjectMessage)mensagem;//receber objeto
+						
+						System.out.println("Mensagem recebida: " + ((Pedido)objectMessage.getObject()).toString());
+					} catch (JMSException e) {						
 						e.printStackTrace();
 					}
 					

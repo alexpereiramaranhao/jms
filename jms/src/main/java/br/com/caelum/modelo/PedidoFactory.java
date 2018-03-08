@@ -1,12 +1,15 @@
 package br.com.caelum.modelo;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-public class PedidoFactory {
+public class PedidoFactory implements Serializable{
+
+	private static final long serialVersionUID = 722415126599894393L;
 
 	public Pedido geraPedidoComValores() {
 		Pedido pedido = new Pedido(2459, geraData("22/12/2016"), geraData("23/12/2016"), new BigDecimal("145.98"));

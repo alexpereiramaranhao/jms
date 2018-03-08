@@ -22,9 +22,10 @@ import br.com.caelum.modelo.PedidoFactory;
  */
 public class TesteProdutorTopico {
 	public static void main(String[] args) {
+		
 		InitialContext context = null;
 		Connection connection = null;
-		try {
+		try {			
 			context = new InitialContext();
 
 			ConnectionFactory factory = (ConnectionFactory) context
@@ -40,15 +41,15 @@ public class TesteProdutorTopico {
 			MessageProducer produtor = session.createProducer(topico);
 			
 			Pedido pedito = new PedidoFactory().geraPedidoComValores();
-			StringWriter writer = new StringWriter();
+			String xml = serializarObjetoParaXml(pedito);
 			
-			JAXB.marshal(pedito, writer);
-
-			String xml = writer.toString();
+			//System.out.println(xml);
+			System.out.println(pedito.toString());
 			
-			System.out.println(xml);
+			//Message mensagem  = session.createTextMessage(xml);//enviar conteúdo mensagem xml
 			
-			Message mensagem  = session.createTextMessage(xml);
+			Message mensagem  = session.createObjectMessage(pedito);//enviar conteúdo mensagem objecto
+			
 			mensagem.setBooleanProperty("ebook", false);
 			
 			produtor.send(mensagem);
@@ -74,5 +75,14 @@ public class TesteProdutorTopico {
 			}
 		}
 
+	}
+
+	private static String serializarObjetoParaXml(Pedido pedito) {
+		StringWriter writer = new StringWriter();
+		
+		JAXB.marshal(pedito, writer);
+
+		String xml = writer.toString();
+		return xml;
 	}
 }
