@@ -1,26 +1,25 @@
 package br.com.saneago.jms;
 
-import java.io.StringWriter;
+import java.util.Scanner;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
-import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
-import javax.jms.MessageProducer;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageListener;
 import javax.jms.Session;
+import javax.jms.TextMessage;
+import javax.jms.Topic;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.xml.bind.JAXB;
-
-import br.com.caelum.modelo.Pedido;
-import br.com.caelum.modelo.PedidoFactory;
 
 /**
  * Hello world!
  *
  */
-public class TesteProdutorTopico {
+public class TesteConsumidorTopicoSelector {
+	@SuppressWarnings("resource")
 	public static void main(String[] args) {
 		InitialContext context = null;
 		Connection connection = null;
@@ -30,29 +29,34 @@ public class TesteProdutorTopico {
 			ConnectionFactory factory = (ConnectionFactory) context
 					.lookup("ConnectionFactory");
 
-			connection = factory.createConnection("user", "senha");
+			connection = factory.createConnection("admin", "admin");
+			connection.setClientID("estoque");
+			
 			connection.start();
 
 			Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 			
-			Destination topico = (Destination) context.lookup("loja");
+			Topic topico = (Topic) context.lookup("loja");
 			
-			MessageProducer produtor = session.createProducer(topico);
+			MessageConsumer consumidor = session.createDurableSubscriber(topico, "assinatura-selector", "ebook is null or ebook=false", false);
 			
-			Pedido pedito = new PedidoFactory().geraPedidoComValores();
-			StringWriter writer = new StringWriter();
-			
-			JAXB.marshal(pedito, writer);
+			consumidor.setMessageListener(new MessageListener(){
 
-			String xml = writer.toString();
+				public void onMessage(Message mensagem) {					
+					try {
+						TextMessage mensagemTexto = (TextMessage)mensagem;
+						
+						System.out.println("Mensagem recebida: " + mensagemTexto.getText());
+					} catch (JMSException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+				}
+				
+			});
 			
-			System.out.println(xml);
-			
-			Message mensagem  = session.createTextMessage(xml);
-			mensagem.setBooleanProperty("ebook", false);
-			
-			produtor.send(mensagem);
-			
+			new Scanner(System.in).nextLine();
 		} catch (NamingException e) {
 			e.printStackTrace();
 		} catch (JMSException e) {
