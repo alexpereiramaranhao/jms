@@ -18,7 +18,7 @@ import javax.naming.NamingException;
  * Hello world!
  *
  */
-public class TesteConsumidorFila {
+public class TesteConsumidorFilaDlq {
 	@SuppressWarnings("resource")
 	public static void main(String[] args) {
 		InitialContext context = null;
@@ -35,20 +35,17 @@ public class TesteConsumidorFila {
 
 			final Session session = connection.createSession(true, Session.SESSION_TRANSACTED);
 			
-			Destination fila = (Destination) context.lookup("financeiro");
+			Destination fila = (Destination) context.lookup("dlq");
 			
 			MessageConsumer consumidor = session.createConsumer(fila);
 			
 			consumidor.setMessageListener(new MessageListener(){
 
 				public void onMessage(Message mensagem) {					
+					System.out.println("Mensagem recebida: " + mensagem);	
 					try {
-						TextMessage mensagemTexto = (TextMessage)mensagem;
-						
-						System.out.println("Mensagem recebida: " + mensagemTexto.getText());
-						
 						session.commit();
-					} catch (JMSException e) {
+					} catch (JMSException e) {						
 						e.printStackTrace();
 						try {
 							session.rollback();
@@ -56,7 +53,6 @@ public class TesteConsumidorFila {
 							e1.printStackTrace();
 						}
 					}
-					
 				}
 				
 			});
